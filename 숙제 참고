@@ -3,3 +3,40 @@ smooth -> rainbow
 just -> just one color
 
 glcall(or draW)list(id) -> to repeat same design 
+can replaced by vertex buffer
+
+mesh -> one draw call
+
+//////////////////////////////////////////////////////////
+orbit
+1. draw mailbox, mailman and dog seperatly
+2. dog is child of ma, manis child of mailbox, mail box is parent of man. They are intertwined.
+3. 자기윗부모부터순서대로곱하기dfdf
+4. using matrix stack
+5. stack one by one 
+
+////double orbit
+t1,r1,t2,r2,t3 //위에서부터꺼낸당ㄹㅇ
+
+위치나돌아가는것이곱해지는것이달ㅇㄹㅇㄹ
+gltranslatef(loc.x, loc.y) //move location using location information
+
+glmatrixmode(gl_modelbview)
+glpush matrix //empty stack
+glcalllist(mailbox)
+glrotate(angle1,0,0,1)
+
+glpopmatrix()
+
+////static orbit
+gltranslatef(loc.s,loc.y,0);
+glpushmatrix();
+gltranslate(angle,0,0,1);
+gltranslate(10,-10,0);
+glrotatef(-angle,0,0,1);
+glcallList(mailMan);
+glPopMatrix();
+
+
+
+//ratio = aspectratio = w/h(동행비를곱해줘야한다dfdfd)
