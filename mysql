@@ -1,0 +1,3 @@
+ALTER table content AUTO_INCREMENT=1;
+SET @cnt=0;
+UPDATE content SET id = @cnt:=@cnt+1;
