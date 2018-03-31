@@ -14,7 +14,7 @@
 #endif
 
 /*create brick texture*/
-GLuint texture[2];
+GLuint texture[3];
 
 GLBatch				topBlock;
 GLBatch				frontBlock;
@@ -22,7 +22,7 @@ GLShaderManager		shaderManager;
 GLMatrixStack		modelViewMatrix;
 GLMatrixStack		projectionMatrix;
 
-GLfloat vLightPos[] = { -8.0f, 20.0f, 100.0f, 1.0f };
+int w, h;
 
 
 void init(void) {
@@ -31,10 +31,11 @@ void init(void) {
 	GLint nWidth, nHeight, nComponents;
 	GLenum format;
 
-	glMatrixMode(GL_PROJECTION);
+	/*glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluOrtho2D(0.0, 10.0, 0.0, 10.0);
-	glMatrixMode(GL_MODELVIEW);
+	//gluOrtho2D(0,10, 0,10);
+	glViewport(0, 0, w, h);
+	glMatrixMode(GL_MODELVIEW);*/
 
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glShadeModel(GL_FLAT);
@@ -65,21 +66,20 @@ void init(void) {
 		format, GL_UNSIGNED_BYTE, pBytes);
 	free(pBytes);
 
+	pBytes = gltReadTGABits("map.tga", &nWidth, &nHeight, &nComponents, &format);
+	glBindTexture(GL_TEXTURE_2D, texture[2]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexImage2D(GL_TEXTURE_2D, 0, nComponents, nWidth, nHeight, 0,
+		format, GL_UNSIGNED_BYTE, pBytes);
+	free(pBytes);
 
 }
 
-
-void display(void) {
-
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glEnable(GL_TEXTURE_2D);
-	glTexEnvi(GL_TEXTURE_ENV , GL_TEXTURE_ENV_MODE , GL_REPLACE);
-
-
-	///////////////////////////////////// window
+void createWindow(void) {
 	glBindTexture(GL_TEXTURE_2D, texture[1]);
-	
-
 	glBegin(GL_QUAD_STRIP);
 
 	glTexCoord2f(0, 0);
@@ -93,7 +93,7 @@ void display(void) {
 
 	glTexCoord2f(0.5f, 1.0f);
 	glVertex2f(5.0, 4.5);
-	
+
 	glTexCoord2f(1.0f, 0);
 	glVertex2f(6.0, 3.5);
 
@@ -102,8 +102,10 @@ void display(void) {
 
 	glEnd();
 	glFlush();
+}
 
-	/////////////////////////////////////top of building
+void createBuilidng(void) {
+
 	glBindTexture(GL_TEXTURE_2D, texture[0]);
 	glBegin(GL_TRIANGLES);
 
@@ -147,6 +149,56 @@ void display(void) {
 
 
 
+
+}
+
+void display(void) {
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_TEXTURE_2D);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+	/* first apart building */
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluOrtho2D(-15,35,-20,35);
+	glViewport(0, 0, w, h);
+	glMatrixMode(GL_MODELVIEW);
+
+	createWindow();
+	createBuilidng();
+
+	/* second apart building */
+	
+
+
+	///////////////////////////////////// back ground map
+	
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluOrtho2D(0, 10, 0, 10);
+	glViewport(0, 0, w, h);
+	glMatrixMode(GL_MODELVIEW);
+
+	glBindTexture(GL_TEXTURE_2D, texture[2]);
+
+	glBegin(GL_QUADS);
+	glTexCoord2f(0, 0);
+	glVertex3f(0, 0, 0); //Left bottom
+
+	glTexCoord2f(1.0f, 0);
+	glVertex3f(10, 0, 0); //Right bottom
+
+	glTexCoord2f(1.0f, 1.0f);
+	glVertex3f(10, 10, 0); //Right top
+
+	glTexCoord2f(0, 1.0f);
+	glVertex3f(0, 10, 0); //Left top
+	glEnd();
+	glFlush();
+
+
 	glDisable(GL_TEXTURE_2D);
 
 }
@@ -158,8 +210,12 @@ int main(int argc, char **argv){
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_SINGLE);
-	glutInitWindowSize(500, 500);
+	glutInitWindowSize(700, 700);
+	glutInitWindowPosition(100, 50);
 	glutCreateWindow("Making a building");
+
+	w = glutGet(GLUT_WINDOW_WIDTH);
+	h = glutGet(GLUT_WINDOW_HEIGHT);
 
 	GLenum err = glewInit();
 	if (GLEW_OK != err)
