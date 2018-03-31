@@ -14,7 +14,8 @@
 #endif
 
 /*create brick texture*/
-GLuint texture[4];
+int textureNum = 5;
+GLuint texture[5];
 
 GLBatch				topBlock;
 GLBatch				frontBlock;
@@ -42,7 +43,7 @@ void init(void) {
 	glEnable(GL_DEPTH_TEST);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 2);
 
-	glGenTextures(4, texture);
+	glGenTextures(textureNum, texture);
 	//glBindTexture(GL_TEXTURE_2D, texture);
 
 
@@ -86,6 +87,16 @@ void init(void) {
 		format, GL_UNSIGNED_BYTE, pBytes);
 	free(pBytes);
 
+	pBytes = gltReadTGABits("logo.tga", &nWidth, &nHeight, &nComponents, &format);
+	glBindTexture(GL_TEXTURE_2D, texture[4]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexImage2D(GL_TEXTURE_2D, 0, nComponents, nWidth, nHeight, 0,
+		format, GL_UNSIGNED_BYTE, pBytes);
+	free(pBytes);
+
 }
 
 void initOrtho(int x, int y, int width, int height) {
@@ -121,28 +132,28 @@ void createWindow(void) {
 	glFlush();
 }
 
-void createBuilidng(GLuint selectedTexture) {
+void createBuilidng(GLuint selectedTexture, int level1x, int level1y, int level2x, int level3x, int level3y ) {
 
 	glBindTexture(GL_TEXTURE_2D, selectedTexture);
 	glBegin(GL_TRIANGLES);
 
 	glTexCoord2f(0, 0);
-	glVertex3f(3.0, 5.0, 0); //Left bottom
+	glVertex3f(3.0 - level2x, 5.0, 0); //Left bottom
 
 	glTexCoord2f(0, 1.0f);
-	glVertex3f(4.0, 7.0, 0); //Left top
+	glVertex3f(4.0 - level3x, 7.0 + level3y, 0); //Left top
 
 	glTexCoord2f(1.0f, 0);
-	glVertex3f(7.0, 5.0, 0);
+	glVertex3f(7.0 + level2x, 5.0, 0); //right botoom
 
 	glTexCoord2f(1.0f, 0);
-	glVertex3f(7.0, 5.0, 0);
+	glVertex3f(7.0 + level2x, 5.0, 0); //right bottom
 
 	glTexCoord2f(0, 1.0f);
-	glVertex3f(4.0, 7.0, 0);
+	glVertex3f(4.0 - level3x, 7.0 + level3y, 0);  //Left top
 
 	glTexCoord2f(1.0f, 1.0f);
-	glVertex3f(6.0, 7.0, 0);
+	glVertex3f(6.0 + level3x, 7.0 + level3y, 0); //right top
 
 	glEnd();
 	glFlush();
@@ -151,22 +162,36 @@ void createBuilidng(GLuint selectedTexture) {
 
 	glBegin(GL_QUADS);
 	glTexCoord2f(0, 0);
-	glVertex3f(4.0, 1.0, 0); //Left bottom
+	glVertex3f(4.0 - level1x, 1.0 + level1y, 0); //Left bottom
 
 	glTexCoord2f(1.0f, 0);
-	glVertex3f(6.0, 1.0, 0); //Right bottom
+	glVertex3f(6.0 + level1x, 1.0 + level1y, 0); //Right bottom
 
 	glTexCoord2f(1.0f, 1.0f);
-	glVertex3f(7.0, 5.0, 0); //Right top
+	glVertex3f(7.0 + level2x, 5.0, 0); //Right top
 
 	glTexCoord2f(0, 1.0f);
-	glVertex3f(3.0, 5.0, 0); //Left top
+	glVertex3f(3.0 - level2x, 5.0, 0); //Left top
 	glEnd();
 	glFlush();
 
 }
 
-
+void createCircle(void) {
+	glBindTexture(GL_TEXTURE_2D, texture[4]);
+	glBegin(GL_POLYGON);
+	double rad = 2;
+	for (int i = 0; i<360; i++)
+	{
+		double angle = i*3.141592 / 180;
+		double x = rad*cos(angle);
+		double y = rad*sin(angle);
+		glTexCoord2f(x, y);
+		glVertex2f(x, y);
+	}
+	glEnd();
+	glFinish();
+}
 
 void display(void) {
 
@@ -180,29 +205,41 @@ void display(void) {
 
 	initOrtho(-15, 35, -20, 35);
 	createWindow();
-	createBuilidng(texture[0]);
+	createBuilidng(texture[0],0,0,0,0,0);
 
-	/* second samsung office */
-	
+	/* second apple office */
+
+	initOrtho(-23.5, 35, -50, 5);
+	createCircle();
 	initOrtho(-15, 35, -50, 10);
-	createBuilidng(texture[2]);
+	createBuilidng(texture[2],0, 0, 0, 0, 0);
 
-	double rad = 0.5;
+	/* third restroom */
 
-	glBindTexture(GL_TEXTURE_2D, texture[0]);
-	glBegin(GL_POLYGON);
-	for (int i = 0; i<360; i++)
-	{
-		double angle = i*3.141592 / 180;
-		double x = rad*cos(angle);
-		double y = rad*sin(angle);
-		glVertex2f(x, y);
-	}
+	initOrtho(-50,20, -30, 20);
+	createBuilidng(texture[0], 2, 0, 1.8, 2, 0);
+
+	glBegin(GL_LINE_LOOP);
+	glVertex2f( 0,  2 );
+	glVertex2f( 1,  1 );
+	glVertex2f( 2,  0.5 );
+	glVertex2f( 1,  0 );
+	glVertex2f( 2, - 1 );
+	glVertex2f( 0,  0 );
+	glVertex2f( 2, - 1 );
+	glVertex2f( 1, 0  );
+	glVertex2f( 2, 0.5 );
+	glVertex2f( 1,  1 );
 	glEnd();
-	glFinish();
+	glFlush();
+
+	/* fourth restroom */
+
+	/* fifth restroom */
+
 
 	/*background map*/
-	
+
 	initOrtho(0, 10, 0, 10);
 
 	glBindTexture(GL_TEXTURE_2D, texture[3]);
