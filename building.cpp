@@ -14,7 +14,7 @@
 #endif
 
 /*create brick texture*/
-GLuint texture[3];
+GLuint texture[4];
 
 GLBatch				topBlock;
 GLBatch				frontBlock;
@@ -42,7 +42,7 @@ void init(void) {
 	glEnable(GL_DEPTH_TEST);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 2);
 
-	glGenTextures(2, texture);
+	glGenTextures(4, texture);
 	//glBindTexture(GL_TEXTURE_2D, texture);
 
 
@@ -66,7 +66,7 @@ void init(void) {
 		format, GL_UNSIGNED_BYTE, pBytes);
 	free(pBytes);
 
-	pBytes = gltReadTGABits("map.tga", &nWidth, &nHeight, &nComponents, &format);
+	pBytes = gltReadTGABits("window2.tga", &nWidth, &nHeight, &nComponents, &format);
 	glBindTexture(GL_TEXTURE_2D, texture[2]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -76,6 +76,23 @@ void init(void) {
 		format, GL_UNSIGNED_BYTE, pBytes);
 	free(pBytes);
 
+	pBytes = gltReadTGABits("map.tga", &nWidth, &nHeight, &nComponents, &format);
+	glBindTexture(GL_TEXTURE_2D, texture[3]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexImage2D(GL_TEXTURE_2D, 0, nComponents, nWidth, nHeight, 0,
+		format, GL_UNSIGNED_BYTE, pBytes);
+	free(pBytes);
+
+}
+
+void initOrtho(int x, int y, int width, int height) {
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluOrtho2D(x, y, width, height);
+	glMatrixMode(GL_MODELVIEW);
 }
 
 void createWindow(void) {
@@ -104,9 +121,9 @@ void createWindow(void) {
 	glFlush();
 }
 
-void createBuilidng(void) {
+void createBuilidng(GLuint selectedTexture) {
 
-	glBindTexture(GL_TEXTURE_2D, texture[0]);
+	glBindTexture(GL_TEXTURE_2D, selectedTexture);
 	glBegin(GL_TRIANGLES);
 
 	glTexCoord2f(0, 0);
@@ -147,10 +164,9 @@ void createBuilidng(void) {
 	glEnd();
 	glFlush();
 
-
-
-
 }
+
+
 
 void display(void) {
 
@@ -158,30 +174,38 @@ void display(void) {
 	glEnable(GL_TEXTURE_2D);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
+	glViewport(0, 0, w, h);
+
 	/* first apart building */
 
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluOrtho2D(-15,35,-20,35);
-	glViewport(0, 0, w, h);
-	glMatrixMode(GL_MODELVIEW);
-
+	initOrtho(-15, 35, -20, 35);
 	createWindow();
-	createBuilidng();
+	createBuilidng(texture[0]);
 
-	/* second apart building */
+	/* second samsung office */
 	
+	initOrtho(-15, 35, -50, 10);
+	createBuilidng(texture[2]);
 
+	double rad = 0.5;
 
-	///////////////////////////////////// back ground map
+	glBindTexture(GL_TEXTURE_2D, texture[0]);
+	glBegin(GL_POLYGON);
+	for (int i = 0; i<360; i++)
+	{
+		double angle = i*3.141592 / 180;
+		double x = rad*cos(angle);
+		double y = rad*sin(angle);
+		glVertex2f(x, y);
+	}
+	glEnd();
+	glFinish();
+
+	/*background map*/
 	
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluOrtho2D(0, 10, 0, 10);
-	glViewport(0, 0, w, h);
-	glMatrixMode(GL_MODELVIEW);
+	initOrtho(0, 10, 0, 10);
 
-	glBindTexture(GL_TEXTURE_2D, texture[2]);
+	glBindTexture(GL_TEXTURE_2D, texture[3]);
 
 	glBegin(GL_QUADS);
 	glTexCoord2f(0, 0);
