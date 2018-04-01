@@ -4,6 +4,9 @@
 #include <GLFrustum.h>
 #include <GLBatch.h>
 #include <GLGeometryTransform.h>
+#include <GLFW/glfw3.h>
+
+#include "createCity.h"
 
 #include <math.h>
 #ifdef __APPLE__
@@ -14,8 +17,8 @@
 #endif
 
 /*create brick texture*/
-int textureNum = 5;
-GLuint texture[5];
+int textureNum = 7;
+GLuint texture[7];
 
 GLBatch				topBlock;
 GLBatch				frontBlock;
@@ -25,26 +28,28 @@ GLMatrixStack		projectionMatrix;
 
 int w, h;
 
+createCity::createCity()
+{
 
-void init(void) {
+}
+
+
+createCity::~createCity()
+{
+}
+
+void setTexture(void) {
 
 	GLbyte *pBytes;
 	GLint nWidth, nHeight, nComponents;
 	GLenum format;
 
-	/*glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	//gluOrtho2D(0,10, 0,10);
-	glViewport(0, 0, w, h);
-	glMatrixMode(GL_MODELVIEW);*/
-
-	glClearColor(0.0, 0.0, 0.0, 0.0);
+	glClearColor(1.0, 1.0, 1.0, 0.0);
 	glShadeModel(GL_FLAT);
 	glEnable(GL_DEPTH_TEST);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 2);
 
 	glGenTextures(textureNum, texture);
-	//glBindTexture(GL_TEXTURE_2D, texture);
 
 
 	pBytes = gltReadTGABits("brick.tga", &nWidth, &nHeight, &nComponents, &format);
@@ -97,7 +102,39 @@ void init(void) {
 		format, GL_UNSIGNED_BYTE, pBytes);
 	free(pBytes);
 
+	pBytes = gltReadTGABits("school.tga", &nWidth, &nHeight, &nComponents, &format);
+	glBindTexture(GL_TEXTURE_2D, texture[5]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexImage2D(GL_TEXTURE_2D, 0, nComponents, nWidth, nHeight, 0,
+		format, GL_UNSIGNED_BYTE, pBytes);
+	free(pBytes);
+
+	pBytes = gltReadTGABits("car.tga", &nWidth, &nHeight, &nComponents, &format);
+	glBindTexture(GL_TEXTURE_2D, texture[6]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexImage2D(GL_TEXTURE_2D, 0, nComponents, nWidth, nHeight, 0,
+		format, GL_UNSIGNED_BYTE, pBytes);
+	free(pBytes);
 }
+
+void init(void) {
+
+	/*glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	//gluOrtho2D(0,10, 0,10);
+	glViewport(0, 0, w, h);
+	glMatrixMode(GL_MODELVIEW);*/
+
+	
+
+}
+
 
 void initOrtho(int x, int y, int width, int height) {
 	glMatrixMode(GL_PROJECTION);
@@ -106,136 +143,68 @@ void initOrtho(int x, int y, int width, int height) {
 	glMatrixMode(GL_MODELVIEW);
 }
 
-void createWindow(void) {
-	glBindTexture(GL_TEXTURE_2D, texture[1]);
-	glBegin(GL_QUAD_STRIP);
+void drawMapAndCity() {
 
-	glTexCoord2f(0, 0);
-	glVertex2f(3.8, 3.5);
-
-	glTexCoord2f(0, 1.0f);
-	glVertex2f(3.6, 4.5);
-
-	glTexCoord2f(0.5f, 0.0f);
-	glVertex2f(5.0, 3.5);
-
-	glTexCoord2f(0.5f, 1.0f);
-	glVertex2f(5.0, 4.5);
-
-	glTexCoord2f(1.0f, 0);
-	glVertex2f(6.0, 3.5);
-
-	glTexCoord2f(1.0f, 1.0f);
-	glVertex2f(6.2, 4.5);
-
-	glEnd();
-	glFlush();
-}
-
-void createBuilidng(GLuint selectedTexture, int level1x, int level1y, int level2x, int level3x, int level3y ) {
-
-	glBindTexture(GL_TEXTURE_2D, selectedTexture);
-	glBegin(GL_TRIANGLES);
-
-	glTexCoord2f(0, 0);
-	glVertex3f(3.0 - level2x, 5.0, 0); //Left bottom
-
-	glTexCoord2f(0, 1.0f);
-	glVertex3f(4.0 - level3x, 7.0 + level3y, 0); //Left top
-
-	glTexCoord2f(1.0f, 0);
-	glVertex3f(7.0 + level2x, 5.0, 0); //right botoom
-
-	glTexCoord2f(1.0f, 0);
-	glVertex3f(7.0 + level2x, 5.0, 0); //right bottom
-
-	glTexCoord2f(0, 1.0f);
-	glVertex3f(4.0 - level3x, 7.0 + level3y, 0);  //Left top
-
-	glTexCoord2f(1.0f, 1.0f);
-	glVertex3f(6.0 + level3x, 7.0 + level3y, 0); //right top
-
-	glEnd();
-	glFlush();
-
-	///////////////////////////////////// front of buliding
-
-	glBegin(GL_QUADS);
-	glTexCoord2f(0, 0);
-	glVertex3f(4.0 - level1x, 1.0 + level1y, 0); //Left bottom
-
-	glTexCoord2f(1.0f, 0);
-	glVertex3f(6.0 + level1x, 1.0 + level1y, 0); //Right bottom
-
-	glTexCoord2f(1.0f, 1.0f);
-	glVertex3f(7.0 + level2x, 5.0, 0); //Right top
-
-	glTexCoord2f(0, 1.0f);
-	glVertex3f(3.0 - level2x, 5.0, 0); //Left top
-	glEnd();
-	glFlush();
-
-}
-
-void createCircle(void) {
-	glBindTexture(GL_TEXTURE_2D, texture[4]);
+	/*create car*/
+	initOrtho(0, 1, 0, 1);
+	glBindTexture(GL_TEXTURE_2D, texture[6]);
+	glEnable(GL_BLEND);
 	glBegin(GL_POLYGON);
-	double rad = 2;
-	for (int i = 0; i<360; i++)
-	{
-		double angle = i*3.141592 / 180;
-		double x = rad*cos(angle);
-		double y = rad*sin(angle);
-		glTexCoord2f(x, y);
-		glVertex2f(x, y);
-	}
+	glTexCoord2f(0, 0);
+	glVertex3f(0.23, 0.8, 0.0);
+	glTexCoord2f(0, 1.0f);
+	glVertex3f(0.23, 0.9, 0.0);
+	glTexCoord2f(1.0f, 1.0f);
+	glVertex3f(0.28, 0.9, 0.0);
+	glTexCoord2f(1.0f, 0);
+	glVertex3f(0.28, 0.8, 0.0);
 	glEnd();
-	glFinish();
-}
-
-void display(void) {
-
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glEnable(GL_TEXTURE_2D);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
-	glViewport(0, 0, w, h);
+	glFlush();
+	glDisable(GL_BLEND);
 
 	/* first apart building */
 
 	initOrtho(-15, 35, -20, 35);
-	createWindow();
-	createBuilidng(texture[0],0,0,0,0,0);
+	createWindow(texture[1]);
+	createBuilidng(texture[0], 0, 0, 0, 0, 0);
 
 	/* second apple office */
 
 	initOrtho(-23.5, 35, -50, 5);
-	createCircle();
+	createCircle(texture[4]);
 	initOrtho(-15, 35, -50, 10);
-	createBuilidng(texture[2],0, 0, 0, 0, 0);
+	createBuilidng(texture[2], 0, 0, 0, 0, 0);
 
-	/* third restroom */
+	/* third building with star */
 
-	initOrtho(-50,20, -30, 20);
+	glColor3f(1, 1, 0);
+	initOrtho(-100, 27, -120, 65);
+	createStar();
+
+
+	initOrtho(-50, 20, -30, 20);
+	createWindow(texture[1]);
 	createBuilidng(texture[0], 2, 0, 1.8, 2, 0);
 
-	glBegin(GL_LINE_LOOP);
-	glVertex2f( 0,  2 );
-	glVertex2f( 1,  1 );
-	glVertex2f( 2,  0.5 );
-	glVertex2f( 1,  0 );
-	glVertex2f( 2, - 1 );
-	glVertex2f( 0,  0 );
-	glVertex2f( 2, - 1 );
-	glVertex2f( 1, 0  );
-	glVertex2f( 2, 0.5 );
-	glVertex2f( 1,  1 );
-	glEnd();
-	glFlush();
 
-	/* fourth restroom */
+	/* fourth school */
+	initOrtho(2, 50, -20, 35);
+	createWindow(texture[1]);
+	initOrtho(-2, 50, -20, 35);
+	createWindow(texture[1]);
+
+	initOrtho(-2, 50, -28, 35);
+	createFlag();
+
+	initOrtho(0, 50, -20, 35);
+	createBuilidng(texture[5], 3, 0, 3, 3, 0);
+
 
 	/* fifth restroom */
+	initOrtho(0, 60, -50, 10);
+	createRoof();
+	createWindow(texture[1]);
+	createBuilidng(texture[0], 2, 0, 1, 2, 0);
 
 
 	/*background map*/
@@ -258,12 +227,25 @@ void display(void) {
 	glVertex3f(0, 10, 0); //Left top
 	glEnd();
 	glFlush();
+}
 
+
+
+void display(void) {
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glEnable(GL_TEXTURE_2D);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+	glViewport(0, (1.5*h) / 5, w, (3.5*h) / 5);
+
+	drawMapAndCity();
+	
 
 	glDisable(GL_TEXTURE_2D);
 
 }
-
 
 
 
@@ -285,7 +267,7 @@ int main(int argc, char **argv){
 		fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
 		return 1;
 	}
-
+	setTexture();
 	init();
 	glutDisplayFunc(display);
 
