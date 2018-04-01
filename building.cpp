@@ -4,7 +4,9 @@
 #include <GLFrustum.h>
 #include <GLBatch.h>
 #include <GLGeometryTransform.h>
-#include <GLFW/glfw3.h>
+#include <string.h>
+#include <stdlib.h>
+#include <iostream>
 
 #include "createCity.h"
 
@@ -16,9 +18,14 @@
 #include <GL/glut.h>
 #endif
 
+using namespace std;
+
 /*create brick texture*/
 int textureNum = 7;
 GLuint texture[7];
+
+/*move car*/
+float xr = 0, yr = 0;
 
 GLBatch				topBlock;
 GLBatch				frontBlock;
@@ -27,6 +34,32 @@ GLMatrixStack		modelViewMatrix;
 GLMatrixStack		projectionMatrix;
 
 int w, h;
+
+void specialkey(int key, int x, int y) {
+	switch (key) {
+		case GLUT_KEY_UP :
+			yr=+0.001;
+			cout << y << endl;
+			glutPostRedisplay();
+			break;
+		case GLUT_KEY_DOWN:
+			yr=-0.001;
+			cout << y << endl;
+			glutPostRedisplay();
+			break;
+		case GLUT_KEY_LEFT:
+			xr =-0.001;
+			cout << x << endl;
+			glutPostRedisplay();
+			break;
+		case GLUT_KEY_RIGHT:
+			xr =+0.001;
+			cout << x << endl;
+			glutPostRedisplay();
+			break;
+
+	}
+}
 
 createCity::createCity()
 {
@@ -146,21 +179,7 @@ void initOrtho(int x, int y, int width, int height) {
 void drawMapAndCity() {
 
 	/*create car*/
-	initOrtho(0, 1, 0, 1);
-	glBindTexture(GL_TEXTURE_2D, texture[6]);
-	glEnable(GL_BLEND);
-	glBegin(GL_POLYGON);
-	glTexCoord2f(0, 0);
-	glVertex3f(0.23, 0.8, 0.0);
-	glTexCoord2f(0, 1.0f);
-	glVertex3f(0.23, 0.9, 0.0);
-	glTexCoord2f(1.0f, 1.0f);
-	glVertex3f(0.28, 0.9, 0.0);
-	glTexCoord2f(1.0f, 0);
-	glVertex3f(0.28, 0.8, 0.0);
-	glEnd();
-	glFlush();
-	glDisable(GL_BLEND);
+	
 
 	/* first apart building */
 
@@ -226,7 +245,7 @@ void drawMapAndCity() {
 	glTexCoord2f(0, 1.0f);
 	glVertex3f(0, 10, 0); //Left top
 	glEnd();
-	glFlush();
+	glutSwapBuffers();
 }
 
 
@@ -240,6 +259,24 @@ void display(void) {
 
 	glViewport(0, (1.5*h) / 5, w, (3.5*h) / 5);
 
+	initOrtho(0, 1, 0, 1);
+	glBindTexture(GL_TEXTURE_2D, texture[6]);
+	glEnable(GL_BLEND);
+	glBegin(GL_POLYGON);
+	glTexCoord2f(0, 0);
+	glVertex3f(0.23 + xr, 0.8 + yr, 0.0);
+	glTexCoord2f(0, 1.0f);
+	glVertex3f(0.23 + xr, 0.9 + yr, 0.0);
+	glTexCoord2f(1.0f, 1.0f);
+	glVertex3f(0.28 + xr, 0.9 + yr, 0.0);
+	glTexCoord2f(1.0f, 0);
+	glVertex3f(0.28 + xr, 0.8 + yr, 0.0);
+	glEnd();
+	glutSwapBuffers();
+	glutPostRedisplay();
+
+	glDisable(GL_BLEND);
+
 	drawMapAndCity();
 	
 
@@ -252,7 +289,7 @@ void display(void) {
 int main(int argc, char **argv){
 
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGBA | GLUT_SINGLE);
+	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 	glutInitWindowSize(700, 700);
 	glutInitWindowPosition(100, 50);
 	glutCreateWindow("Making a building");
@@ -270,6 +307,8 @@ int main(int argc, char **argv){
 	setTexture();
 	init();
 	glutDisplayFunc(display);
+
+	glutSpecialFunc(specialkey);
 
 
 	glutMainLoop();
