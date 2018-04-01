@@ -40,3 +40,9 @@ glPopMatrix();
 
 
 //ratio = aspectratio = w/h(동행비를곱해줘야한다dfdfd)
+
+opengl -> collision detection
+https://github.com/zunaidm/2D-Car-Race-game/blob/master/CarGame/main.cpp
+
+
+
