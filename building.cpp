@@ -25,7 +25,7 @@ int textureNum = 7;
 GLuint texture[7];
 
 /*move car*/
-float xr = 0, yr = 0;
+float theta = 0.0, angle = 0.0, posX = 0, posY = 0, posZ = 0;
 
 GLBatch				topBlock;
 GLBatch				frontBlock;
@@ -35,40 +35,43 @@ GLMatrixStack		projectionMatrix;
 
 int w, h;
 
-void specialkey(int key, int x, int y) {
-	switch (key) {
-		case GLUT_KEY_UP :
-			yr=+0.001;
-			cout << y << endl;
-			glutPostRedisplay();
-			break;
-		case GLUT_KEY_DOWN:
-			yr=-0.001;
-			cout << y << endl;
-			glutPostRedisplay();
-			break;
-		case GLUT_KEY_LEFT:
-			xr =-0.001;
-			cout << x << endl;
-			glutPostRedisplay();
-			break;
-		case GLUT_KEY_RIGHT:
-			xr =+0.001;
-			cout << x << endl;
-			glutPostRedisplay();
-			break;
+float move_unit = 0.1f;
 
+createCity::createCity(){}
+createCity::~createCity(){}
+
+
+void keyboardown(int key, int x, int y)
+{
+	switch (key){
+	case GLUT_KEY_RIGHT:
+		angle = 180;
+		posX += move_unit;;
+		cout << x << endl;
+		break;
+
+	case GLUT_KEY_LEFT:
+		angle = 0;
+		posX -= move_unit;;
+		cout << x << endl;
+		break;
+
+	case GLUT_KEY_UP:
+		angle = -90;
+		posY += move_unit;;
+		cout << y << endl;
+		break;
+
+	case GLUT_KEY_DOWN:
+		angle = 90;
+		posY -= move_unit;;
+		cout << y << endl;
+		break;
+
+	default:
+		break;
 	}
-}
-
-createCity::createCity()
-{
-
-}
-
-
-createCity::~createCity()
-{
+	glutPostRedisplay();
 }
 
 void setTexture(void) {
@@ -158,32 +161,51 @@ void setTexture(void) {
 
 void init(void) {
 
-	/*glMatrixMode(GL_PROJECTION);
+	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	//gluOrtho2D(0,10, 0,10);
-	glViewport(0, 0, w, h);
-	glMatrixMode(GL_MODELVIEW);*/
+	glMatrixMode(GL_MODELVIEW);
 
-	
+
 
 }
 
 
 void initOrtho(int x, int y, int width, int height) {
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
+	//glMatrixMode(GL_PROJECTION);
+	//glLoadIdentity();
 	gluOrtho2D(x, y, width, height);
-	glMatrixMode(GL_MODELVIEW);
+	//glMatrixMode(GL_MODELVIEW);
+}
+
+void drawCar() {
+
+	glBindTexture(GL_TEXTURE_2D, texture[6]);
+	glTranslatef(posX, posY, 0.0);
+	glRotatef(angle, 0.0, 0.0, 1.0);
+	glTranslatef(-posX, -posY, 0.0);
+	glTranslatef(posX, posY, 0.0);
+
+	std::cout << "posX = " << posX << ", posY = " << posY << "\n";
+	gluOrtho2D(-10.0, 10.0, -10.0, 10.0);
+	glBegin(GL_POLYGON);
+	glTexCoord2f(0, 0);
+	glVertex2f(-0.5, -0.5);
+	glTexCoord2f(0, 1.0f);
+	glVertex2f(0.5, -0.5);
+	glTexCoord2f(1.0f, 1.0f);
+	glVertex2f(0.5, 0.5);
+	glTexCoord2f(1.0f, 0);
+	glVertex2f(-0.5, 0.5);
+	glEnd();
+
 }
 
 void drawMapAndCity() {
 
-	/*create car*/
-	
-
 	/* first apart building */
 
-	initOrtho(-15, 35, -20, 35);
+	gluOrtho2D(-15, 35, -20, 35);
 	createWindow(texture[1]);
 	createBuilidng(texture[0], 0, 0, 0, 0, 0);
 
@@ -245,7 +267,8 @@ void drawMapAndCity() {
 	glTexCoord2f(0, 1.0f);
 	glVertex3f(0, 10, 0); //Left top
 	glEnd();
-	glutSwapBuffers();
+
+	
 }
 
 
@@ -258,29 +281,15 @@ void display(void) {
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
 	glViewport(0, (1.5*h) / 5, w, (3.5*h) / 5);
+	glPushMatrix();
 
-	initOrtho(0, 1, 0, 1);
-	glBindTexture(GL_TEXTURE_2D, texture[6]);
-	glEnable(GL_BLEND);
-	glBegin(GL_POLYGON);
-	glTexCoord2f(0, 0);
-	glVertex3f(0.23 + xr, 0.8 + yr, 0.0);
-	glTexCoord2f(0, 1.0f);
-	glVertex3f(0.23 + xr, 0.9 + yr, 0.0);
-	glTexCoord2f(1.0f, 1.0f);
-	glVertex3f(0.28 + xr, 0.9 + yr, 0.0);
-	glTexCoord2f(1.0f, 0);
-	glVertex3f(0.28 + xr, 0.8 + yr, 0.0);
-	glEnd();
-	glutSwapBuffers();
-	glutPostRedisplay();
-
-	glDisable(GL_BLEND);
-
+	drawCar();
 	drawMapAndCity();
 	
 
+	glPopMatrix();
 	glDisable(GL_TEXTURE_2D);
+	glutSwapBuffers();
 
 }
 
@@ -308,7 +317,7 @@ int main(int argc, char **argv){
 	init();
 	glutDisplayFunc(display);
 
-	glutSpecialFunc(specialkey);
+	glutSpecialFunc(keyboardown);
 
 
 	glutMainLoop();
