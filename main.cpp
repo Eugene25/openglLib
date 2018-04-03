@@ -49,41 +49,19 @@ createCity::~createCity(){}
 static float move_unit = 0.1f;
 
 void RenderScene(void);
-
-int MyListId[2];
 bool isDisplayList = false;
 
-void MyCreateList() {
-
-	MyListId[0] = glGenLists(1); //draw baclground
-	glNewList(MyListId[0], GL_COMPILE);
-		glBegin(GL_QUADS);
-		glTexCoord2f(0, 0);
-		glVertex3f(0, 0, 0); //Left bottom
-
-		glTexCoord2f(1.0f, 0);
-		glVertex3f(10, 0, 0); //Right bottom
-
-		glTexCoord2f(1.0f, 1.0f);
-		glVertex3f(10, 10, 0); //Right top
-
-		glTexCoord2f(0, 1.0f);
-		glVertex3f(0, 10, 0); //Left top
-		glEnd();
-	glEndList();
-
-	MyListId[1] = glGenLists(2);
-	glNewList(MyListId[1], GL_COMPILE);
-	glBegin(GL_POLYGON);
-	glColor3f(0.5, 0.5, 0.5);
-	glVertex3f(-1, -1, 0.0);
-	glVertex3f(1, -1, 0.0);
-	glVertex3f(1, 1, 0.0);
-	glVertex3f(-1, 1, 0.0);
-	glEnd();
-	glEndList();
+void KeyPressFunc(unsigned char key, int x, int y)
+{
+	if (key == 32)
+	{
+		nStep++;
+		if (nStep > 2)
+			nStep = 0;
+	}
+	// Refresh the Window
+	glutPostRedisplay();
 }
-
 
 void keyboardown(int key, int x, int y)
 {
@@ -158,136 +136,59 @@ void menuSelect() {
 	}
 }
 
+void displayBackground(void) {
 
+	if (!isDisplayList) {
+		if (nStep == 0) drawLineMap();
+		else if (nStep == 1) {
+			glEnable(GL_TEXTURE_2D);
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
-void RenderCity(void) {
+			glPushMatrix();
+			drawCar(texture[6], posX, posY, angle);
+			glPopMatrix();
 
-		//glEnable(GL_BLEND);
-		glEnable(GL_LINE_SMOOTH);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		//glDisable(GL_CULL_FACE);
-
-		glPushMatrix();
-		drawCar(NULL,0, 0, 0);
-
-		/*first apart*/
-		initOrtho(-15, 35, -20, 35);
-		createWindow(NULL);
-		createBuilidng(NULL,0, 0, 0, 0, 0);
-
-		/* second apple office */
-
-		initOrtho(-23.5, 35, -50, 5);
-		createCircle(NULL);
-		initOrtho(-15, 35, -50, 10);
-		createBuilidng(NULL, 0, 0, 0, 0, 0);
-
-		/* third building with star */
-
-		initOrtho(-100, 27, -120, 65);
-		createStar();
-
-
-		initOrtho(-50, 20, -30, 20);
-		createWindow(NULL);
-		createBuilidng(NULL, 2, 0, 1.8, 2, 0);
-
-
-		/* fourth school */
-		initOrtho(2, 50, -20, 35);
-		createWindow(NULL);
-		initOrtho(-2, 50, -20, 35);
-		createWindow(NULL);
-
-		initOrtho(0, 50, -20, 35);
-		createBuilidng(NULL, 3, 0, 3, 3, 0);
-
-		initOrtho(-2, 50, -28, 35);
-		createFlag();
-
-
-		/* fifth restroom */
-		initOrtho(0, 60, -50, 10);
-		createRoof();
-		createWindow(NULL);
-		createBuilidng(NULL, 2, 0, 1, 2, 0);
-
-
-		/*background map*/
-
-		initOrtho(0, 10, 0, 10);
-
-		if (!isDisplayList) {
-			glBegin(GL_QUADS);
-			glTexCoord2f(0, 0);
-			glVertex3f(0, 0, 0); //Left bottom
-
-			glTexCoord2f(1.0f, 0);
-			glVertex3f(10, 0, 0); //Right bottom
-
-			glTexCoord2f(1.0f, 1.0f);
-			glVertex3f(10, 10, 0); //Right top
-
-			glTexCoord2f(0, 1.0f);
-			glVertex3f(0, 10, 0); //Left top
-			glEnd();
+			glPushMatrix();
+			drawMapAndCity();
+			glPopMatrix();
+			glDisable(GL_TEXTURE_2D);
 		}
-		else {
-			glCallList(MyListId[0]);
+	}
+	else {
+		if (nStep == 0) drawLineWithDisplayList();
+		else if (nStep == 1) {
+			glEnable(GL_TEXTURE_2D);
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+			glPushMatrix();
+			initOrtho(-15.0, 5.0, -16.0, 4.0);
+			glTranslatef(posX, posY, 0.0);
+			glRotatef(angle, 0.0, 0.0, 1.0);
+			glTranslatef(-posX, -posY, 0.0);
+			glTranslatef(posX, posY, 0.0);
+			glBindTexture(GL_TEXTURE_2D, texture[6]);
+			glCallList(MyListId[6]);
+			glPopMatrix();
+
+			drawMapWithDisplayList();
+
+			glDisable(GL_TEXTURE_2D);
 		}
-
-		glPopMatrix();
-
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	//glEnable(GL_CULL_FACE);
-	//glDisable(GL_BLEND);
-	glDisable(GL_LINE_SMOOTH);
-	//glDisable(GL_STENCIL_TEST);
-
+	}
 
 }
 
+
 void RenderScene(void)
 {
-	// Clear the window with current clearing color
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	menuSelect();
 	glViewport(0, (1.5*h) / 5, w, (3.5*h) / 5);
-	
-	if (nStep == 0)
-	{
-		RenderCity();
+	displayBackground();
 
-	} else if(nStep==1) {
-
-		glEnable(GL_TEXTURE_2D);
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
-		glPushMatrix();
-		drawCar(texture[6], posX, posY, angle);
-		glPopMatrix();
-
-		glPushMatrix();
-		drawMapAndCity();
-		glPopMatrix();
-		glDisable(GL_TEXTURE_2D);
-		
-	}
 	glutSwapBuffers();
 
-}
-
-void KeyPressFunc(unsigned char key, int x, int y)
-{
-	if (key == 32)
-	{
-		nStep++;
-		if (nStep > 2)
-			nStep = 0;
-	}
-	// Refresh the Window
-	glutPostRedisplay();
 }
 
 int main(int argc, char **argv){
