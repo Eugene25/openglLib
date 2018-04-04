@@ -19,6 +19,9 @@
 #include <GL/glut.h>
 #endif
 
+#define GAP 1000
+#define MAX_TEXT_SIZE 255
+
 using namespace std;
 
 /*create brick texture*/
@@ -40,6 +43,10 @@ GLGeometryTransform	transformPipeline;
 M3DMatrix44f		shadowMatrix;
 // Keep track of effects step
 int nStep = 0;
+
+//for timer
+static int g_counter = 0;
+static int j = 0;
 
 int w, h;
 
@@ -96,7 +103,7 @@ void keyboardown(int key, int x, int y)
 
 void init(void) {
 
-	glClearColor(1, 1, 1, 0);
+	glClearColor(0, 0, 0, 0);
 	//glMatrixMode(GL_PROJECTION);
 	//glLoadIdentity();
 	//gluOrtho2D(0,10, 0,10);
@@ -122,16 +129,16 @@ void menuSelect() {
 	else if (value == 4){ //fast
 		move_unit = 0.5f;
 	}
-	else if (value == 5){ 
+	else if (value == 5){
 		glShadeModel(GL_SMOOTH);
 	}
-	else if (value == 6){ 
+	else if (value == 6){
 		glShadeModel(GL_FLAT);
 	}
 	else if (value == 7){
 		isDisplayList = TRUE;
 	}
-	else if (value == 8){ 
+	else if (value == 8){
 		isDisplayList = FALSE;
 	}
 }
@@ -178,14 +185,44 @@ void displayBackground(void) {
 
 }
 
+void myTimer(int value) {
 
+	g_counter = value + 1;
+	glutPostRedisplay();
+	glutTimerFunc(GAP, myTimer, g_counter);
+}
+
+void displayPanel(void) {
+
+	char text[MAX_TEXT_SIZE];
+	sprintf_s(text, "%d", g_counter);
+
+	initOrtho(-1, 1, -1, 1);
+	glColor3f(1, 0, 0);
+	drawText("time=", 0.35, 0.5);
+	drawText(text, 0.5, 0.5);
+	drawText("s", 0.55, 0.5);
+
+	glColor3f(0.9, 0.9, 0.9);
+	glBegin(GL_QUADS);
+	glVertex2f(-1, -1);
+	glVertex2f(-1, 1);
+	glVertex2f(1, 1);
+	glVertex2f(1, -1);
+	glEnd();
+}
 void RenderScene(void)
 {
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	menuSelect();
 	glViewport(0, (1.5*h) / 5, w, (3.5*h) / 5);
 	displayBackground();
+
+	glViewport(0, 0, w, (1.5*h) / 5);
+	displayPanel();
+
 
 	glutSwapBuffers();
 
@@ -217,6 +254,7 @@ int main(int argc, char **argv){
 	createMenuCG();
 	glutKeyboardFunc(KeyPressFunc);
 	glutDisplayFunc(RenderScene);
+	glutTimerFunc(GAP, myTimer, 0);
 	glutSpecialFunc(keyboardown);
 
 
