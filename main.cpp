@@ -68,7 +68,7 @@ void KeyPressFunc(unsigned char key, int x, int y)
 	}
 	// Refresh the Window
 	glutPostRedisplay();
-}
+}//
 
 void keyboardown(int key, int x, int y)
 {
