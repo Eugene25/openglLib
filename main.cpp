@@ -42,21 +42,19 @@ GLBatch				leftBlock;
 GLGeometryTransform	transformPipeline;
 M3DMatrix44f		shadowMatrix;
 // Keep track of effects step
-int nStep = 0;
+int nStep = 1;
 
 //for timer
-static int g_counter = 0;
+int g_counter = 0;
 static int j = 0;
 
 int w, h;
-
-createCity::createCity(){}
-createCity::~createCity(){}
 
 static float move_unit = 0.1f;
 
 void RenderScene(void);
 bool isDisplayList = false;
+bool isFinishLine = false;
 
 void KeyPressFunc(unsigned char key, int x, int y)
 {
@@ -72,31 +70,37 @@ void KeyPressFunc(unsigned char key, int x, int y)
 
 void keyboardown(int key, int x, int y)
 {
-	cout << "speed = " << move_unit << "\n";
+	if (posX >= 4.1)  posX = 4.1;
+	else if (posY >= 2.8) posY = 2.8;
+	else if (posX <= -14.4) posX = -14.4;
+	else if (posY <= -15.4) posY = -15.4;
+	else {
 
-	switch (key){
-	case GLUT_KEY_RIGHT:
-		angle = 180;
-		posX += move_unit;
-		break;
+		switch (key){
+		case GLUT_KEY_RIGHT:
+			angle = 180;
+			posX += move_unit;
+			break;
 
-	case GLUT_KEY_LEFT:
-		angle = 0;
-		posX -= move_unit;
-		break;
+		case GLUT_KEY_LEFT:
+			angle = 0;
+			posX -= move_unit;
+			break;
 
-	case GLUT_KEY_UP:
-		angle = -90;
-		posY += move_unit;
-		break;
+		case GLUT_KEY_UP:
+			angle = -90;
+			posY += move_unit;
+			break;
 
-	case GLUT_KEY_DOWN:
-		angle = 90;
-		posY -= move_unit;
-		break;
+		case GLUT_KEY_DOWN:
+			angle = 90;
+			posY -= move_unit;
+			break;
 
-	default:
-		break;
+		default:
+			break;
+		}
+
 	}
 	glutPostRedisplay();
 }
@@ -187,9 +191,14 @@ void displayBackground(void) {
 
 void myTimer(int value) {
 
-	g_counter = value + 1;
-	glutPostRedisplay();
-	glutTimerFunc(GAP, myTimer, g_counter);
+	cout << "g_counter = " << g_counter << "\n";
+	if (!isFinishLine) {
+		g_counter = value + 1;
+
+		glutPostRedisplay();
+		glutTimerFunc(GAP, myTimer, g_counter);
+	}
+
 }
 
 void displayPanel(void) {
@@ -201,7 +210,10 @@ void displayPanel(void) {
 	glColor3f(1, 0, 0);
 	drawText("time=", 0.35, 0.5);
 	drawText(text, 0.5, 0.5);
-	drawText("s", 0.55, 0.5);
+	if (isDisplayList) drawText("display mode = true", -0.8, 0.5);
+	else drawText("display mode = false", -0.8, 0.5);
+	if (isFinishLine) drawText("Game over", -0.5, -0.5);
+	else drawText("Game on Air", -0.5, -0.5);
 
 	glColor3f(0.9, 0.9, 0.9);
 	glBegin(GL_QUADS);
@@ -211,6 +223,13 @@ void displayPanel(void) {
 	glVertex2f(1, -1);
 	glEnd();
 }
+
+void checkFinishLine(void) {
+	if (posX >= -7.5 && posX <= -6.5 && posY <= -9.4 && posY >= -12.9) {
+		isFinishLine = true;
+	}
+}
+
 void RenderScene(void)
 {
 
@@ -222,6 +241,9 @@ void RenderScene(void)
 
 	glViewport(0, 0, w, (1.5*h) / 5);
 	displayPanel();
+
+	checkFinishLine();
+		
 
 
 	glutSwapBuffers();
