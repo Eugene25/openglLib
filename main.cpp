@@ -28,6 +28,7 @@ using namespace std;
 
 /*move car*/
 float angle = 0.0, posX = 0, posY = 0, posZ = 0;
+float chX = 0, chY = 0;
 
 GLShaderManager		shaderManager;
 GLMatrixStack		modelViewMatrix;
@@ -51,6 +52,7 @@ static int j = 0;
 int w, h;
 
 static float move_unit = 0.1f;
+static float idle_move = 0.009f;
 
 void RenderScene(void);
 bool isDisplayList = false;
@@ -77,6 +79,8 @@ void keyboardown(int key, int x, int y)
 	else {
 
 		switch (key){
+			chX += 0;
+
 		case GLUT_KEY_RIGHT:
 			angle = 180;
 			posX += move_unit;
@@ -98,6 +102,7 @@ void keyboardown(int key, int x, int y)
 			break;
 
 		default:
+
 			break;
 		}
 
@@ -147,6 +152,34 @@ void menuSelect() {
 	}
 }
 
+void sceneChoreo(void) {
+
+	/*Moving car along straight line*/
+	glPushMatrix();
+	glBindTexture(GL_TEXTURE_2D, texture[7]);
+	initOrtho(-5.0, 15.0, -16.0, 4.0);
+	if (chX >= 14.0f) idle_move = -0.009f;
+	else if (chX <= -5.0f) idle_move = 0.009f;
+	chX += idle_move;
+	glTranslatef(chX, chY, 0);
+	glBegin(GL_POLYGON);
+	glTexCoord2f(0, 0);
+	glVertex2f(-0.5, -0.5);
+	glTexCoord2f(0, 1.0f);
+	glVertex2f(0.5, -0.5);
+	glTexCoord2f(1.0f, 1.0f);
+	glVertex2f(0.5, 0.5);
+	glTexCoord2f(1.0f, 0);
+	glVertex2f(-0.5, 0.5);
+	glEnd();
+	glutPostRedisplay();
+	glPopMatrix();
+
+
+
+}
+
+
 void displayBackground(void) {
 
 	if (!isDisplayList) {
@@ -191,9 +224,8 @@ void displayBackground(void) {
 
 void myTimer(int value) {
 
-	cout << "g_counter = " << g_counter << "\n";
 	if (!isFinishLine) {
-		g_counter = value + 1;
+		g_counter = value;
 
 		glutPostRedisplay();
 		glutTimerFunc(GAP, myTimer, g_counter);
@@ -237,6 +269,9 @@ void RenderScene(void)
 
 	menuSelect();
 	glViewport(0, (1.5*h) / 5, w, (3.5*h) / 5);
+	sceneChoreo();
+
+
 	displayBackground();
 
 	glViewport(0, 0, w, (1.5*h) / 5);
@@ -272,13 +307,12 @@ int main(int argc, char **argv){
 	MyCreateList();
 	setTexture();
 	init();
-
 	createMenuCG();
-	glutKeyboardFunc(KeyPressFunc);
+
 	glutDisplayFunc(RenderScene);
+	glutKeyboardFunc(KeyPressFunc);
 	glutTimerFunc(GAP, myTimer, 0);
 	glutSpecialFunc(keyboardown);
-
 
 	glutMainLoop();
 	return 0;
