@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <iostream>
+#include <math.h>
 
 #include "createCity.h"
 #include "popUp.h"
@@ -32,19 +33,10 @@ float angle = 0.0, posX = 0, posY = 0, posZ = 0;
 float chX = 0, chY = 0, sinX = 0, sinY = 0;
 float spiralX =0, spiralY=0, theta=0.0f;
 float sinMove = 0;
+float doubleOrbitAngle = 0.0f;
 
-GLShaderManager		shaderManager;
-GLMatrixStack		modelViewMatrix;
-GLMatrixStack		projectionMatrix;
-GLFrame				cameraFrame;
-GLFrustum			viewFrustum;
-GLBatch				cubeBatch;
-GLBatch				floorBatch;
-GLBatch				topBlock;
-GLBatch				frontBlock;
-GLBatch				leftBlock;
-GLGeometryTransform	transformPipeline;
-M3DMatrix44f		shadowMatrix;
+float doubleOrbitX = 0.0f, doubleOrbitY = 0.0f, doubleOrbitX2 = 0.0f, doubleOrbitY2 = 0.0f;
+
 // Keep track of effects step
 int nStep = 1;
 
@@ -77,6 +69,7 @@ void KeyPressFunc(unsigned char key, int x, int y)
 
 void keyboardown(int key, int x, int y)
 {
+
 	if (posX >= 4.1)  posX = 4.1;
 	else if (posY >= 2.8) posY = 2.8;
 	else if (posX <= -14.4) posX = -14.4;
@@ -279,8 +272,6 @@ void displayBackground(void) {
 
 void myTimer(int value) {
 
-	cout << "time : " << value << "\n";
-
 	if (!isFinishLine) {
 		g_counter = value+1;
 
@@ -319,6 +310,83 @@ void checkFinishLine(void) {
 	}
 }
 
+void doubleOrbit(void) {
+
+	doubleOrbitAngle += 0.01;
+
+	glPushMatrix();
+		gluOrtho2D(-10, 70, -10, 70);
+		glEnable(GL_TEXTURE_2D);
+		glRotatef(doubleOrbitAngle*10, 0.0, 0.0, 1.0);
+		createCircle(texture[4]);
+		glDisable(GL_TEXTURE_2D);
+	glPopMatrix();
+
+
+	glPushMatrix();
+		doubleOrbitX = sin(doubleOrbitAngle) * 33;
+		doubleOrbitY = cos(doubleOrbitAngle) * 33;
+
+		gluOrtho2D(-10, 70, -10, 70);
+		glScalef(0.15, 0.15, 0);
+
+		glTranslatef(doubleOrbitX, doubleOrbitY, 0.0);
+		glRotatef(doubleOrbitAngle*40, 0.0, 0.0, 1.0);
+		glTranslatef(-doubleOrbitX, -doubleOrbitY, 0.0);
+		glTranslatef(doubleOrbitX, doubleOrbitY, 0.0);
+		glCallList(MyListId[1]);
+	glPopMatrix();
+
+	glPushMatrix();
+		doubleOrbitX2 = sin(doubleOrbitAngle) * 7;
+		doubleOrbitY2 = cos(doubleOrbitAngle) * 7;
+
+		gluOrtho2D(-10, 70, -10, 70);
+
+		glTranslatef(doubleOrbitX2, doubleOrbitY2, 0.0);
+		glRotatef(doubleOrbitAngle*100, 0.0, 0.0, 1.0);
+		glTranslatef(-doubleOrbitX2, -doubleOrbitY2, 0.0);
+		glTranslatef(doubleOrbitX2, doubleOrbitY2, 0.0);
+
+		glBegin(GL_POLYGON);
+		glColor3f(1, 0, 0);
+		glVertex2f(-0.5, -0.5);
+		glVertex2f(0.5, -0.5);
+		glColor3f(1, 0.5, 0);
+		glVertex2f(0, 0.5);
+		glEnd();
+	glPopMatrix();
+
+	glutPostRedisplay();
+
+}
+
+void staticOrbit(void) {
+	doubleOrbitAngle += 0.008;
+
+	glPushMatrix();
+	gluOrtho2D(-40, 40, -10, 70);
+	glEnable(GL_TEXTURE_2D);
+	glRotatef(doubleOrbitAngle * 10, 0.0, 0.0, 1.0);
+	createCircle(texture[4]);
+	glDisable(GL_TEXTURE_2D);
+	glPopMatrix();
+
+
+	glPushMatrix();
+	doubleOrbitX = sin(doubleOrbitAngle) * 25;
+	doubleOrbitY = cos(doubleOrbitAngle) * 25;
+
+	gluOrtho2D(-40, 40, -10, 70);
+	glScalef(0.15, 0.15, 0);
+
+	glTranslatef(doubleOrbitX, doubleOrbitY, 0.0);
+	glCallList(MyListId[1]);
+	glPopMatrix();
+
+	glutPostRedisplay();
+}
+
 void RenderScene(void)
 {
 
@@ -326,6 +394,8 @@ void RenderScene(void)
 
 	menuSelect();
 	glViewport(0, (1.5*h) / 5, w, (3.5*h) / 5);
+	doubleOrbit();
+	staticOrbit();
 	sceneChoreo();
 	displayBackground();
 
@@ -334,11 +404,11 @@ void RenderScene(void)
 	checkFinishLine();
 
 	glutSwapBuffers();
-
+	
 }
 
 int main(int argc, char **argv){
-
+	
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 	glutInitWindowSize(700, 700);
