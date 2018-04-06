@@ -160,4 +160,15 @@ void MyCreateList() {
 		}
 	glEnd();
 	glEndList();
+
+
+	MyListId[8] = glGenLists(9); //draw circle
+	glNewList(MyListId[8], GL_COMPILE);
+	glColor3f(1, 0, 0);
+	glLineWidth(3);
+	glBegin(GL_LINES);
+	glVertex2f(4, 1.8);
+	glVertex2f(4, 3);
+	glEnd();
+	glEndList();
 }
