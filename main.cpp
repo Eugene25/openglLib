@@ -21,6 +21,7 @@
 
 #define GAP 1000
 #define MAX_TEXT_SIZE 255
+#define PIE 3.141593
 
 using namespace std;
 
@@ -28,7 +29,9 @@ using namespace std;
 
 /*move car*/
 float angle = 0.0, posX = 0, posY = 0, posZ = 0;
-float chX = 0, chY = 0;
+float chX = 0, chY = 0, sinX = 0, sinY = 0;
+float spiralX =0, spiralY=0, theta=0.0f;
+float sinMove = 0;
 
 GLShaderManager		shaderManager;
 GLMatrixStack		modelViewMatrix;
@@ -53,6 +56,8 @@ int w, h;
 
 static float move_unit = 0.1f;
 static float idle_move = 0.009f;
+static float sin_move = 0.09f;
+static float epsilon = 0.1f * 2.0f * PIE;
 
 void RenderScene(void);
 bool isDisplayList = false;
@@ -77,9 +82,11 @@ void keyboardown(int key, int x, int y)
 	else if (posX <= -14.4) posX = -14.4;
 	else if (posY <= -15.4) posY = -15.4;
 	else {
-
 		switch (key){
 			chX += 0;
+			spiralX += 0;
+			spiralY += 0;
+			sinMove += 0;
 
 		case GLUT_KEY_RIGHT:
 			angle = 180;
@@ -153,9 +160,57 @@ void menuSelect() {
 }
 
 void sceneChoreo(void) {
+	
+	/*apple with spiral movement*/
+	glPushMatrix();
+	if (theta > 30) epsilon = -(0.005f* PIE);
+	else if (theta < 0) epsilon = 0.005f* PIE;
+	theta += epsilon;
+	spiralX = sin(theta) * theta;
+	spiralY = cos(theta) * theta;
+
+	initOrtho(-140, 140, -140, 140);
+	glTranslatef(spiralX, spiralY, 0);
+	glBegin(GL_QUADS);
+	glColor3f(0, 1, 0.5f);
+	glVertex2f(-0.5, 1);
+	glVertex2f(-0.5, 2);
+	glColor3f(0, 1, 0.7f);
+	glVertex2f(0.5, 2);
+	glVertex2f(0.5, 1);
+	glEnd();
+
+	glBegin(GL_POLYGON);
+	glColor3f(1, 0, 0);
+	double rad = 1;
+	for (int i = 0; i<360; i++)
+	{
+		double angle = i*PIE / 180;
+		double x = rad*cos(angle);
+		double y = rad*sin(angle);
+		glVertex2f(x, y);
+	}
+	glEnd();
+	glPopMatrix();
+
+	/*insect with sin movement*/
+	glPushMatrix();
+	if (sinMove > 10) sin_move = -0.05;
+	else if (sinMove <= 0) sin_move = 0.05;
+	sinMove += sin_move;
+	sinX = sinMove;
+	sinY = sin(sinMove*(6.0 / 10.0)) * 3;
+	initOrtho(-10, 60, -50, 50);
+	glTranslatef(sinX, sinY, 0.0);
+	glRotatef(sinY*5, 0.0, 0.0, 1.0);
+	glTranslatef(-sinX, -sinY, 0.0);
+	glTranslatef(sinX, sinY, 0.0);
+	drawLeave();
+	glPopMatrix();
 
 	/*Moving car along straight line*/
 	glPushMatrix();
+	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texture[7]);
 	initOrtho(-5.0, 15.0, -16.0, 4.0);
 	if (chX >= 14.0f) idle_move = -0.009f;
@@ -172,13 +227,13 @@ void sceneChoreo(void) {
 	glTexCoord2f(1.0f, 0);
 	glVertex2f(-0.5, 0.5);
 	glEnd();
+	glDisable(GL_TEXTURE_2D);
 	glutPostRedisplay();
 	glPopMatrix();
 
 
 
 }
-
 
 void displayBackground(void) {
 
@@ -224,8 +279,10 @@ void displayBackground(void) {
 
 void myTimer(int value) {
 
+	cout << "time : " << value << "\n";
+
 	if (!isFinishLine) {
-		g_counter = value;
+		g_counter = value+1;
 
 		glutPostRedisplay();
 		glutTimerFunc(GAP, myTimer, g_counter);
@@ -270,16 +327,11 @@ void RenderScene(void)
 	menuSelect();
 	glViewport(0, (1.5*h) / 5, w, (3.5*h) / 5);
 	sceneChoreo();
-
-
 	displayBackground();
 
 	glViewport(0, 0, w, (1.5*h) / 5);
 	displayPanel();
-
 	checkFinishLine();
-		
-
 
 	glutSwapBuffers();
 
@@ -309,8 +361,8 @@ int main(int argc, char **argv){
 	init();
 	createMenuCG();
 
-	glutDisplayFunc(RenderScene);
 	glutKeyboardFunc(KeyPressFunc);
+	glutDisplayFunc(RenderScene);
 	glutTimerFunc(GAP, myTimer, 0);
 	glutSpecialFunc(keyboardown);
 
