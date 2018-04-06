@@ -18,8 +18,8 @@
 #include <GL/glut.h>
 #endif
 
-int textureNum = 7;
-GLuint texture[7];
+int textureNum = 8;
+GLuint texture[8];
 
 class createCity
 {
@@ -29,6 +29,7 @@ public:
 
 	void initOrtho(int x, int y, int width, int height);
 	void setTexture(void);
+	void drawInsect(void);
 	void createWindow(GLuint selectedTexture);
 	void createBuilidng(GLuint selectedTexture,int level1x, int level1y, int level2x, int level3x, int level3y);
 	void createCircle(GLuint selectedTexture);
@@ -40,7 +41,7 @@ public:
 	void drawMapWithDisplayList(void);
 	void drawLineWithDisplayList(void);
 	void drawLineMap(void);
-
+	void drawText(const char* message, GLfloat x, GLfloat y);
 };
 
 void initOrtho(int x, int y, int width, int height) {
@@ -49,7 +50,6 @@ void initOrtho(int x, int y, int width, int height) {
 	gluOrtho2D(x, y, width, height);
 	glMatrixMode(GL_MODELVIEW);
 }
-
 
 void setTexture(void) {
 
@@ -140,8 +140,67 @@ void setTexture(void) {
 	glTexImage2D(GL_TEXTURE_2D, 0, nComponents, nWidth, nHeight, 0,
 		format, GL_UNSIGNED_BYTE, pBytes);
 	free(pBytes);
+
+	pBytes = gltReadTGABits("car2.tga", &nWidth, &nHeight, &nComponents, &format);
+	glBindTexture(GL_TEXTURE_2D, texture[7]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexImage2D(GL_TEXTURE_2D, 0, nComponents, nWidth, nHeight, 0,
+		format, GL_UNSIGNED_BYTE, pBytes);
+	free(pBytes);
 }
 
+void drawLeave(void) {
+
+	glColor3f(0, 1, 0);
+	//body
+	glBegin(GL_QUADS);
+	glVertex2f(0, -1);
+	glVertex2f(0.5, -1);
+	glVertex2f(0.5, 1);
+	glVertex2f(0, 1);
+	glEnd();
+
+	//antenna
+	glBegin(GL_LINES);
+	glVertex2f(0.1, 1);
+	glVertex2f(0.1, 1.5);
+	glEnd();
+	glBegin(GL_LINES);
+	glVertex2f(0.4, 1);
+	glVertex2f(0.4, 1.5);
+	glEnd();
+
+	//legs
+	glBegin(GL_LINE_STRIP);
+	glVertex2f(0.5, 0.6);
+	glVertex2f(0.8, 0.9);
+	glEnd();
+	glBegin(GL_LINE_STRIP);
+	glVertex2f(0.5, 0.3);
+	glVertex2f(0.8, 0.7);
+	glEnd();
+	glBegin(GL_LINE_STRIP);
+	glVertex2f(0.5, -0.5);
+	glVertex2f(0.8, 0.0);
+	glEnd();
+
+	glBegin(GL_LINE_STRIP);
+	glVertex2f(0, 0.6);
+	glVertex2f(-0.3, 0.9);
+	glEnd();
+	glBegin(GL_LINE_STRIP);
+	glVertex2f(0, 0.3);
+	glVertex2f(-0.3, 0.7);
+	glEnd();
+	glBegin(GL_LINE_STRIP);
+	glVertex2f(0, -0.5);
+	glVertex2f(-0.3, 0.0);
+	glEnd();
+
+}
 
 void createBuilidng(GLuint selectedTexture, int level1x, int level1y, int level2x, int level3x, int level3y) {
 
@@ -213,7 +272,6 @@ void createWindow(GLuint selectedTexture) {
 	glEnd();
 	
 }
-
 
 void createCircle(GLuint selectedTexture) {
 
@@ -377,10 +435,22 @@ void drawMapAndCity() {
 	createWindow(texture[1]);
 	createBuilidng(texture[0], 2, 0, 1, 2, 0);
 
-
 	/*background map*/
 
 	initOrtho(0, 10, 0, 10);
+
+	glDisable(GL_TEXTURE_2D);
+	glEnable(GL_COLOR_MATERIAL);
+
+	glColor3f(1, 0, 0);
+	glLineWidth(3);
+	glBegin(GL_LINES);
+	glVertex2f(4,1.8);
+	glVertex2f(4,3);
+	glEnd();
+
+	glDisable(GL_COLOR_MATERIAL);
+	glEnable(GL_TEXTURE_2D);
 
 	glBindTexture(GL_TEXTURE_2D, texture[3]);
 
@@ -457,6 +527,20 @@ void drawLineMap(void) {
 	/*background map*/
 
 	initOrtho(0, 10, 0, 10);
+
+	glDisable(GL_TEXTURE_2D);
+	glEnable(GL_COLOR_MATERIAL);
+
+	glColor3f(1, 0, 0);
+	glLineWidth(3);
+	glBegin(GL_LINES);
+	glVertex2f(4, 1.8);
+	glVertex2f(4, 3);
+	glEnd();
+
+	glDisable(GL_COLOR_MATERIAL);
+	glEnable(GL_TEXTURE_2D);
+
 	glBegin(GL_QUADS);
 	glTexCoord2f(0, 0);
 	glVertex3f(0, 0, 0); //Left bottom
@@ -543,6 +627,11 @@ void drawMapWithDisplayList(void) {
 	/*background map*/
 
 	initOrtho(0, 10, 0, 10);
+	glDisable(GL_TEXTURE_2D);
+	glEnable(GL_COLOR_MATERIAL);
+	glCallList(MyListId[8]);
+	glDisable(GL_COLOR_MATERIAL);
+	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texture[3]);
 	glCallList(MyListId[0]);
 	glPopMatrix();
@@ -602,6 +691,11 @@ void drawLineWithDisplayList(void) {
 	/*background map*/
 
 	initOrtho(0, 10, 0, 10);
+	glDisable(GL_TEXTURE_2D);
+	glEnable(GL_COLOR_MATERIAL);
+	glCallList(MyListId[8]);
+	glDisable(GL_COLOR_MATERIAL);
+	glEnable(GL_TEXTURE_2D);
 	glCallList(MyListId[0]);
 
 
@@ -609,4 +703,14 @@ void drawLineWithDisplayList(void) {
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glDisable(GL_LINE_SMOOTH);
+}
+
+void drawText(const char* message, GLfloat x, GLfloat y) {
+
+	glRasterPos2f(x, y);
+
+	while (*message) {
+		glutBitmapCharacter(GLUT_BITMAP_8_BY_13, *message++);
+	}
+
 }
