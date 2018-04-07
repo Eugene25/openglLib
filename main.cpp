@@ -31,20 +31,21 @@ using namespace std;
 /*move car*/
 float angle = 0.0, posX = 0, posY = 0, posZ = 0;
 float chX = 0, chY = 0, sinX = 0, sinY = 0;
-float spiralX =0, spiralY=0, theta=0.0f;
+float spiralX = 0, spiralY = 0, theta = 0.0f;
 float sinMove = 0;
 float doubleOrbitAngle = 0.0f;
 
 float doubleOrbitX = 0.0f, doubleOrbitY = 0.0f, doubleOrbitX2 = 0.0f, doubleOrbitY2 = 0.0f;
 
 // Keep track of effects step
-int nStep = 1;
+int nStep = 0;
 
 //for timer
 int g_counter = 0;
 static int j = 0;
 
 int w, h;
+int newWindowW=0, newWindowH=0;
 
 static float move_unit = 0.1f;
 static float idle_move = 0.009f;
@@ -153,7 +154,7 @@ void menuSelect() {
 }
 
 void sceneChoreo(void) {
-	
+
 	/*apple with spiral movement*/
 	glPushMatrix();
 	if (theta > 30) epsilon = -(0.005f* PIE);
@@ -195,7 +196,7 @@ void sceneChoreo(void) {
 	sinY = sin(sinMove*(6.0 / 10.0)) * 3;
 	initOrtho(-10, 60, -50, 50);
 	glTranslatef(sinX, sinY, 0.0);
-	glRotatef(sinY*5, 0.0, 0.0, 1.0);
+	glRotatef(sinY * 5, 0.0, 0.0, 1.0);
 	glTranslatef(-sinX, -sinY, 0.0);
 	glTranslatef(sinX, sinY, 0.0);
 	drawLeave();
@@ -231,8 +232,8 @@ void sceneChoreo(void) {
 void displayBackground(void) {
 
 	if (!isDisplayList) {
-		if (nStep == 0) drawLineMap();
-		else if (nStep == 1) {
+		if (value == 6) drawLineMap();
+		else if (value == 5) {
 			glEnable(GL_TEXTURE_2D);
 			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
@@ -247,8 +248,8 @@ void displayBackground(void) {
 		}
 	}
 	else {
-		if (nStep == 0) drawLineWithDisplayList();
-		else if (nStep == 1) {
+		if (value == 6) drawLineWithDisplayList();
+		else if (value == 5) {
 			glEnable(GL_TEXTURE_2D);
 			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
@@ -273,7 +274,7 @@ void displayBackground(void) {
 void myTimer(int value) {
 
 	if (!isFinishLine) {
-		g_counter = value+1;
+		g_counter = value + 1;
 
 		glutPostRedisplay();
 		glutTimerFunc(GAP, myTimer, g_counter);
@@ -286,14 +287,27 @@ void displayPanel(void) {
 	char text[MAX_TEXT_SIZE];
 	sprintf_s(text, "%d", g_counter);
 
+	char text2[MAX_TEXT_SIZE];
+	sprintf_s(text2, "%d", move_unit);
+
 	initOrtho(-1, 1, -1, 1);
 	glColor3f(1, 0, 0);
 	drawText("time=", 0.35, 0.5);
 	drawText(text, 0.5, 0.5);
+	drawText("speed=", 0.35, 0.8);
+	drawText(text2, 0.5, 0.8);
 	if (isDisplayList) drawText("display mode = true", -0.8, 0.5);
-	else drawText("display mode = false", -0.8, 0.5);
+		else drawText("display mode = false", -0.8, 0.5);
+		if (value == 5) {
+			drawText("polygons = smooth", -0.8, 0.8);
+			drawText("mode = filled", -0.8, 0.2);
+		}
+		else {
+			drawText("polygons = flat", -0.8, 0.8);
+			drawText("mode = outline", -0.8, 0.2);
+		}
 	if (isFinishLine) drawText("Game over", -0.5, -0.5);
-	else drawText("Game on Air", -0.5, -0.5);
+		else drawText("Game on Air", -0.5, -0.5);
 
 	glColor3f(0.9, 0.9, 0.9);
 	glBegin(GL_QUADS);
@@ -315,46 +329,46 @@ void doubleOrbit(void) {
 	doubleOrbitAngle += 0.01;
 
 	glPushMatrix();
-		gluOrtho2D(-10, 70, -10, 70);
-		glEnable(GL_TEXTURE_2D);
-		glRotatef(doubleOrbitAngle*10, 0.0, 0.0, 1.0);
-		createCircle(texture[4]);
-		glDisable(GL_TEXTURE_2D);
+	initOrtho(-10, 70, -10, 70);
+	glEnable(GL_TEXTURE_2D);
+	glRotatef(doubleOrbitAngle * 10, 0.0, 0.0, 1.0);
+	createCircle(texture[4]);
+	glDisable(GL_TEXTURE_2D);
 	glPopMatrix();
 
 
 	glPushMatrix();
-		doubleOrbitX = sin(doubleOrbitAngle) * 33;
-		doubleOrbitY = cos(doubleOrbitAngle) * 33;
+	doubleOrbitX = sin(doubleOrbitAngle) * 33;
+	doubleOrbitY = cos(doubleOrbitAngle) * 33;
 
-		gluOrtho2D(-10, 70, -10, 70);
-		glScalef(0.15, 0.15, 0);
+	initOrtho(-10, 70, -10, 70);
+	glScalef(0.15, 0.15, 0);
 
-		glTranslatef(doubleOrbitX, doubleOrbitY, 0.0);
-		glRotatef(doubleOrbitAngle*40, 0.0, 0.0, 1.0);
-		glTranslatef(-doubleOrbitX, -doubleOrbitY, 0.0);
-		glTranslatef(doubleOrbitX, doubleOrbitY, 0.0);
-		glCallList(MyListId[1]);
+	glTranslatef(doubleOrbitX, doubleOrbitY, 0.0);
+	glRotatef(doubleOrbitAngle * 40, 0.0, 0.0, 1.0);
+	glTranslatef(-doubleOrbitX, -doubleOrbitY, 0.0);
+	glTranslatef(doubleOrbitX, doubleOrbitY, 0.0);
+	glCallList(MyListId[1]);
 	glPopMatrix();
 
 	glPushMatrix();
-		doubleOrbitX2 = sin(doubleOrbitAngle) * 7;
-		doubleOrbitY2 = cos(doubleOrbitAngle) * 7;
+	doubleOrbitX2 = sin(doubleOrbitAngle) * 7;
+	doubleOrbitY2 = cos(doubleOrbitAngle) * 7;
 
-		gluOrtho2D(-10, 70, -10, 70);
+	initOrtho(-10, 70, -10, 70);
 
-		glTranslatef(doubleOrbitX2, doubleOrbitY2, 0.0);
-		glRotatef(doubleOrbitAngle*100, 0.0, 0.0, 1.0);
-		glTranslatef(-doubleOrbitX2, -doubleOrbitY2, 0.0);
-		glTranslatef(doubleOrbitX2, doubleOrbitY2, 0.0);
+	glTranslatef(doubleOrbitX2, doubleOrbitY2, 0.0);
+	glRotatef(doubleOrbitAngle * 100, 0.0, 0.0, 1.0);
+	glTranslatef(-doubleOrbitX2, -doubleOrbitY2, 0.0);
+	glTranslatef(doubleOrbitX2, doubleOrbitY2, 0.0);
 
-		glBegin(GL_POLYGON);
-		glColor3f(1, 0, 0);
-		glVertex2f(-0.5, -0.5);
-		glVertex2f(0.5, -0.5);
-		glColor3f(1, 0.5, 0);
-		glVertex2f(0, 0.5);
-		glEnd();
+	glBegin(GL_POLYGON);
+	glColor3f(1, 0, 0);
+	glVertex2f(-0.5, -0.5);
+	glVertex2f(0.5, -0.5);
+	glColor3f(1, 0.5, 0);
+	glVertex2f(0, 0.5);
+	glEnd();
 	glPopMatrix();
 
 	glutPostRedisplay();
@@ -365,7 +379,7 @@ void staticOrbit(void) {
 	doubleOrbitAngle += 0.008;
 
 	glPushMatrix();
-	gluOrtho2D(-40, 40, -10, 70);
+	initOrtho(-40, 40, -10, 70);
 	glEnable(GL_TEXTURE_2D);
 	glRotatef(doubleOrbitAngle * 10, 0.0, 0.0, 1.0);
 	createCircle(texture[4]);
@@ -377,7 +391,7 @@ void staticOrbit(void) {
 	doubleOrbitX = sin(doubleOrbitAngle) * 25;
 	doubleOrbitY = cos(doubleOrbitAngle) * 25;
 
-	gluOrtho2D(-40, 40, -10, 70);
+	initOrtho(-40, 40, -10, 70);
 	glScalef(0.15, 0.15, 0);
 
 	glTranslatef(doubleOrbitX, doubleOrbitY, 0.0);
@@ -392,27 +406,57 @@ void RenderScene(void)
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	menuSelect();
-	glViewport(0, (1.5*h) / 5, w, (3.5*h) / 5);
-	doubleOrbit();
-	staticOrbit();
-	sceneChoreo();
-	displayBackground();
+	if (newWindowH >= 390 || newWindowW >= 380) {
+		menuSelect();
+		glViewport(0, (1.5*newWindowH) / 5, newWindowW, (3.5*newWindowH) / 5);
+		doubleOrbit();
+		staticOrbit();
+		sceneChoreo();
+		displayBackground();
 
-	glViewport(0, 0, w, (1.5*h) / 5);
-	displayPanel();
-	checkFinishLine();
+		glViewport(0, 0, newWindowW, (1.5*newWindowH) / 5);
+		displayPanel();
+		checkFinishLine();
+	}
+	else {
+		menuSelect();
+		glViewport(0, 0, newWindowW, newWindowH);
+
+		doubleOrbit();
+		staticOrbit();
+		sceneChoreo();
+		displayBackground();
+	}
 
 	glutSwapBuffers();
-	
+
+}
+
+void ChangeSize(int w, int h)
+{
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	//gluOrtho2D(-1.0, 1.0, -1.0, 1.0);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glViewport(0, 0, w, h);
+
+	/* save the current window/viewport dimensions for use outside of this routine */
+	newWindowW = w;
+	newWindowH = h;
+
+	cout << "(h,w) = (" << newWindowH << ", " << newWindowW << ") \n";
+
+
+
 }
 
 int main(int argc, char **argv){
-	
+
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 	glutInitWindowSize(700, 700);
-	glutInitWindowPosition(100, 50);
+	glutInitWindowPosition(0, 0);
 	glutCreateWindow("Making a building");
 
 	w = glutGet(GLUT_WINDOW_WIDTH);
@@ -436,6 +480,7 @@ int main(int argc, char **argv){
 	glutTimerFunc(GAP, myTimer, 0);
 	glutSpecialFunc(keyboardown);
 
+	glutReshapeFunc(ChangeSize);
 	glutMainLoop();
 	return 0;
 }
