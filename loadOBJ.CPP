@@ -1,3 +1,4 @@
+https://www.gamedev.net/forums/topic/692339-importing-obj-model-to-opengl/
 #include <GLTools.h>
 #include <string.h>
 #include <stdlib.h>
