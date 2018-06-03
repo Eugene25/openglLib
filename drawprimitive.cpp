@@ -9,6 +9,8 @@
 
 #include <glm/glm.hpp>
 
+#include "MeshStructure.h"
+
 #define PI 3.1415926535898
 #define Cos(th) cos(PI/180*(th))
 #define Sin(th) sin(PI/180*(th))
@@ -53,7 +55,7 @@ void drawCube(float width, float height) {
 		0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0,   // v7,v4,v3,v2 (bottom)
 		1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0 }; // v4,v7,v6,v5 (back)
 
-	GLubyte indices[] = {
+	std::vector<int> indices = {
 		0, 1, 2, 2, 3, 0,   // 36 of indices
 		0, 3, 4, 4, 5, 0,
 		0, 5, 6, 6, 1, 0,
@@ -61,15 +63,15 @@ void drawCube(float width, float height) {
 		7, 4, 3, 3, 2, 7,
 		4, 7, 6, 6, 5, 4 };
 
-	GLfloat vertices[] = {
-		width, height, width,
-		-width, height, width,
-		-width, -8.0f, width,
-		width, -8.0f, width,
-		width, -8.0f, -width,
-		width, height, -width,
-		-width, height, -width,
-		-width, -8.0f, -width,
+	std::vector<glm::vec3> vertices = {
+		{ width, height, width },
+		{ -width, height, width },
+		{ -width, -8.0f, width },
+		{ width, -8.0f, width },
+		{ width, -8.0f, -width },
+		{ width, height, -width },
+		{ -width, height, -width },
+		{ -width, -8.0f, -width }
 	};          // 8 of vertex coords
 	// normal array
 	GLfloat normals[] = {
@@ -141,9 +143,44 @@ void drawCube(float width, float height) {
 		7, 4, 3, 2,
 		4, 7, 6, 5, };
 
+	MeshStructure MESH;
+	MESH.SetMesh(vertices,indices);
+
+	GLfloat	 lightPosition[] = { 1.0, 2.0, 3.0, 1.0 };
+	glEnable(GL_COLOR_MATERIAL);
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+	glEnable(GL_NORMALIZE);
+
+	for (int i = 0; i < MESH.vertex.size(); i += 3) {
+
+		//draw line
+		glColor3f(1, 1, 1);
+		glBegin(GL_LINES);
+		glVertex3f(MESH.startCenters[i / 3].x, MESH.startCenters[i / 3].y, MESH.startCenters[i / 3].z);
+		glVertex3f(MESH.endCenters[i / 3].x, MESH.endCenters[i / 3].y, MESH.endCenters[i / 3].z);
+		glEnd();
+
+		glColor3f(colors[i / 3], colors[(i / 3) + 1], colors[(i / 3) + 1]);
+		glBegin(GL_TRIANGLES);
+
+		//first triangle
+		glNormal3f(MESH.faceNormal[i / 3].x, MESH.faceNormal[i / 3].y, MESH.faceNormal[i / 3].z);
+		glVertex3f(MESH.vertex[i].x, MESH.vertex[i].y, MESH.vertex[i].z);
+		glVertex3f(MESH.vertex[i + 1].x, MESH.vertex[i + 1].y, MESH.vertex[i + 1].z);
+		glVertex3f(MESH.vertex[i + 2].x, MESH.vertex[i + 2].y, MESH.vertex[i + 2].z);
+		glEnd();
+
+	}
+
+	glDisable(GL_COLOR_MATERIAL);
+	glDisable(GL_LIGHTING);
+	glDisable(GL_LIGHT0);
+	glDisable(GL_NORMALIZE);
 
 
-	glEnableClientState(GL_NORMAL_ARRAY);
+	/*glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glNormalPointer(GL_FLOAT, 0, normals);
@@ -160,32 +197,41 @@ void drawCube(float width, float height) {
 
 	glDisableClientState(GL_VERTEX_ARRAY);  // disable vertex arrays
 	glDisableClientState(GL_COLOR_ARRAY);
-	glDisableClientState(GL_NORMAL_ARRAY);
+	glDisableClientState(GL_NORMAL_ARRAY);*/
 
 }
 
 void drawCylinder(float width, float height, float r, float g, float b) {
 
+	MeshStructure MESH;
+	MESH.SetMesh(vertices, indices);
+
 	glBegin(GL_TRIANGLE_FAN);
 
-	glNormal3f(0.0f, 1.0f, 0.0f);
-	//change y value here and in the vertex below to move the end up or
-	// down to seal the top end of the cylinder
+	//glNormal3f(0.0f, 1.0f, 0.0f);
+
 	glVertex3f(0.0f, height, 0.0f);
 	glColor3f(1, 1, 1);
 	for (int i = 0; i <= 300; i++)
 	{
+		glColor3f(1, 1, 1);
+		glBegin(GL_LINES);
+		glVertex3f(MESH.startCenters[i / 3].x, MESH.startCenters[i / 3].y, MESH.startCenters[i / 3].z);
+		glVertex3f(MESH.endCenters[i / 3].x, MESH.endCenters[i / 3].y, MESH.endCenters[i / 3].z);
+		glEnd();
 
+		glBegin(GL_TRIANGLE_FAN);
 		glVertex3f(width * cos(-i), height, width * sin(-i));
+		glEnd();
 	}
 
-	glEnd();
+
 
 
 
 	// bottom end of cylinder
 	glBegin(GL_TRIANGLE_FAN);
-	glNormal3f(0.0f, -1.0f, 0.0f);
+	//glNormal3f(0.0f, -1.0f, 0.0f);
 	//change y value here and in the vertex below to move the end up or
 	// down to seal the bottom end of the cylinder. Delete for a cone
 	glVertex3f(0.0f, 0, 0.0f);
@@ -223,8 +269,8 @@ void drawPlane() {
 	glVertex3f(50.0f, -10.0f, -50.0f);
 	glEnd();
 
-	glFlush();
-	glutSwapBuffers();
+//	glFlush();
+	//glutSwapBuffers();
 }
 
 void drawTriangle() {
