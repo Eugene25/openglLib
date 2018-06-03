@@ -13,6 +13,7 @@
 //#include "drawPrimitive.h"
 #include "drawObject.h"
 #include "popUp.h"
+#include "MeshStructure.h"
 
 #define PI 3.1415926535898
 #define Cos(th) cos(PI/180*(th))
@@ -63,22 +64,6 @@ bool isSmooth = false;
 // display() Callback function
 // ----------------------------------------------------------
 
-
-struct Mesh {
-	std::vector< glm::vec3> vertices;
-	std::vector< glm::vec2> textCoordinates;
-	std::vector< glm::vec3> normals;
-
-	std::vector<unsigned int> v_index;
-	std::vector<unsigned int> t_index;
-	std::vector<unsigned int> n_index;
-
-	std::vector< glm::vec3> perFaceNormals;
-	std::vector< glm::vec3> perVertexNormals;
-	std::vector< glm::vec3> perVertexTextCoordinates;
-
-
-} mesh;
 
 void specialKeys(int key, int x, int y) {
 
@@ -167,85 +152,6 @@ void init(void) {
 // ----------------------------------------------------------
 
 
-std::vector<Vec3>  calculateFaceNormal(std::vector<Vec3> vertex) {
-
-
-	Vec3 u;
-	Vec3 v;
-	Vec3 normal;
-	std::vector<glm::vec3> faceNormal;
-
-	float unit;
-
-	
-
-	for (int i = 0; i < vertex.size(); i+=3) {
-
-		u = vertex[i+2] - vertex[i+0];
-		v = vertex[i + 2] - vertex[i+1];
-		/*printf("index [%d,%d,%d] \n", i, i + 1, i + 2);
-		std::cout << "each last vertex = (" << vertex[i + 2].x << ", " << vertex[i + 2].y << ", " << vertex[i + 2].z << ")\n";
-		std::cout << " 'u' vertex = (" << u.x << ", " << u.y << ", " << u.z << ")\n";
-		std::cout << " 'v' each last vertex = (" << v.x << ", " << v.y << ", " <<v.z << ")\n";*/
-		normal = cross(u, v);
-	//	std::cout << "result of befor unit = (" << normal.x << ", " << normal.y << ", " << normal.z << ")\n";
-		unit = sqrt((normal.x*normal.x) + (normal.y*normal.y) + (normal.z*normal.z));
-	//	printf("result of root = %f", unit);
-		normal = { normal.x / unit, normal.y / unit, normal.z / unit };
-		faceNormal.push_back(normal);
-
-		std::cout << "result of face normal = (" << normal.x << ", " << normal.y << ", " << normal.z << ")\n";
-
-	}
-
-	return faceNormal;
-
-	
-
-}
-
-std::vector<Vec3>  calcualteCenter(std::vector<Vec3> vertex) {
-
-	Vec3 sum;
-	Vec3 normal;
-	std::vector<Vec3> center;
-
-	float unit;
-
-	for (int i = 0; i < vertex.size(); i += 3) {
-		sum = vertex[i] + vertex[i + 1] + vertex[i + 2];
-
-		center.push_back({ sum.x / 3, sum.y / 3, sum.z / 3 });
-
-
-	}
-
-	return center;
-
-
-}
-
-std::vector<Vec3>  calcualteEndCenter(std::vector<Vec3> startCenter, std::vector<Vec3> faceNormal) {
-
-	Vec3 sum;
-	Vec3 normal;
-	std::vector<Vec3> endCenter;
-
-	float unit;
-
-	for (int i = 0; i < startCenter.size(); i ++) {
-		sum = { startCenter[i].x + 5 * faceNormal[i].x, startCenter[i].y + 5 * faceNormal[i].y, startCenter[i].z + 5 * faceNormal[i].z };
-
-
-		endCenter.push_back(sum);
-	}
-
-	return endCenter;
-
-
-}
-
-
 void display(){
 
 	menuSelect();
@@ -271,7 +177,7 @@ void display(){
 		{ 0, 2, 0 }, { 0, 0, 2 }, {2,0,0},
 		{ -5, -5, 2 }, { 0, 2, 0 }, { -5, 0, 5 } };*/
 
-	GLfloat vertices[][3] = {
+	std::vector<Vec3> vertices = {
 		//0
 		{-5,5,5},
 		//1
@@ -299,23 +205,32 @@ void display(){
 		{ 1.0, 0, 1.0 }
 	};
 
-	GLubyte index[18] = {
+	/*GLubyte index[18] = {
 	0, 1, 2 ,
 	 3, 0, 2,
 	3, 2, 4 ,
 	4, 2, 5 ,
 	7,0,3,
 	7,3,4
+	};*/
+
+	std::vector<int> index = {
+		0, 1, 2,
+		3, 0, 2,
+		3, 2, 4,
+		4, 2, 5,
+		7, 0, 3,
+		7, 3, 4
 	};
 
 	//vertices to vertex
-	std::vector<Vec3> vertex;
+	/*std::vector<Vec3> vertex;
 	Vec3 temp;
 
-	for (int i = 0; i <18; i++) {
-		temp.x=vertices[index[i]][0];
-		temp.y=vertices[index[i]][1];
-		temp.z =vertices[index[i]][2];
+	for (int i = 0; i <index.size(); i++) {
+		temp.x=vertices[index[i]].x;
+		temp.y=vertices[index[i]].y;
+		temp.z =vertices[index[i]].z;
 
 		vertex.push_back(temp);
 
@@ -329,24 +244,29 @@ void display(){
 	std::vector<Vec3> faceNormal = calculateFaceNormal(vertex);
 	std::vector<Vec3> startCenters = calcualteCenter(vertex);
 	std::vector<Vec3> endCenters = calcualteEndCenter(startCenters, faceNormal);
+	*/
 
-	for (int i = 0; i < vertex.size(); i += 3) {
+	MeshStructure MESH;
+	MESH.SetMesh(vertices, index);
+	
+
+	for (int i = 0; i < MESH.vertex.size(); i += 3) {
 
 		//draw line
 		glColor3f(1, 1, 1);
 		glBegin(GL_LINES);
-		glVertex3f(startCenters[i / 3].x, startCenters[i / 3].y, startCenters[i / 3].z);
-		glVertex3f(endCenters[i / 3].x, endCenters[i / 3].y, endCenters[i / 3].z);
+		glVertex3f(MESH.startCenters[i / 3].x, MESH.startCenters[i / 3].y, MESH.startCenters[i / 3].z);
+		glVertex3f(MESH.endCenters[i / 3].x, MESH.endCenters[i / 3].y, MESH.endCenters[i / 3].z);
 		glEnd();
 
 		glColor3f(colors[i / 3][0], colors[i / 3][1], colors[i / 3][2]);
 		glBegin(GL_TRIANGLES);
 
 		//first triangle
-		glNormal3f(faceNormal[i / 3].x, faceNormal[i / 3].y, faceNormal[i / 3].z);
-		glVertex3f(vertex[i].x, vertex[i].y, vertex[i].z);
-		glVertex3f(vertex[i + 1].x, vertex[i + 1].y, vertex[i + 1].z);
-		glVertex3f(vertex[i + 2].x, vertex[i + 2].y, vertex[i + 2].z);
+		glNormal3f(MESH.faceNormal[i / 3].x, MESH.faceNormal[i / 3].y, MESH.faceNormal[i / 3].z);
+		glVertex3f(MESH.vertex[i].x, MESH.vertex[i].y, MESH.vertex[i].z);
+		glVertex3f(MESH.vertex[i + 1].x, MESH.vertex[i + 1].y, MESH.vertex[i + 1].z);
+		glVertex3f(MESH.vertex[i + 2].x, MESH.vertex[i + 2].y, MESH.vertex[i + 2].z);
 		glEnd();
 
 	}
